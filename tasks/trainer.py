@@ -10,75 +10,78 @@ import torch
 from PIL import Image
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
-from torch.utils.data import DataLoader, Subset
+from torch.utils.data import DataLoader
 
-import sys
-sys.path.insert(1,"/share/projects/sesure/aimi/SRDiff_test")#"/gpfswork/rech/ung/utq99jv/SRDiff")
 
 from utils.hparams import hparams, set_hparams
 import numpy as np
-from utils.utils import plot_img, move_to_cuda, load_checkpoint, save_checkpoint, tensors_to_scalars, load_ckpt, Measure
+from utils.utils import move_to_cuda, load_checkpoint, save_checkpoint, tensors_to_scalars, Measure
 
 from utils.dataloader import Dataset
-from utils.matlab_resize import imresize
 import warnings
 warnings.filterwarnings("ignore")
 
-#from memory_profiler import profile
-import gc
-
-#from line_profiler import LineProfiler
-
-path = "/share/projects/sesure/aimi/data" #"/gpfsscratch/rech/ung/utq99jv/new_data" # 
+path = "/share/projects/sesure/aimi/data"
 
 
 class Trainer:
     def __init__(self):
-        self.logger = self.build_tensorboard(save_dir=hparams['work_dir'], name='tb_logs')
+        self.logger = self.build_tensorboard(save_dir=hparams['work_dir'], name = 'tb_logs')
         self.measure = Measure()
         self.dataset_cls = None
-        self.metric_keys = ['psnr', 'ssim', 'lpips', 'lr_psnr', 'mae', 'mse', 'shift_mae']
+        self.metric_keys = ['psnr', 'ssim', 'lpips', 'lr_psnr',
+                            'mae', 'mse', 'shift_mae']
         self.work_dir = hparams['work_dir']
-        self.first_val = True
-        
+        self.first_val = True        
         self.to_tensor_norm = transforms.Compose([
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-        ])
+            ])
 
     def seed_worker(self, worker_id):
         worker_seed = torch.initial_seed() % 2**32
         np.random.seed(worker_seed)
         random.seed(worker_seed)
 
-
     def build_tensorboard(self, save_dir, name, **kwargs):
         log_dir = os.path.join(save_dir, name)
         os.makedirs(log_dir, exist_ok=True)
         return SummaryWriter(log_dir=log_dir, **kwargs)
 
-    
     def build_train_dataloader(self, subset=True):
         g = torch.Generator()
         g.manual_seed(0)
-
-        dataset_train = Dataset(path,phase="train",sen2_amount=hparams["sen2_amount"])
-        dataloader = DataLoader(dataset_train,batch_size=hparams["batch_size"],
-                          shuffle=True, num_workers=4, pin_memory=True, drop_last=True, worker_init_fn=self.seed_worker, generator=g)
+        dataset_train = Dataset(path, phase="train",
+                                sen2_amount=hparams["sen2_amount"])
+        dataloader = DataLoader(dataset_train,
+                                batch_size=hparams["batch_size"],
+                                shuffle=True,
+                                num_workers=4,
+                                pin_memory=True,
+                                drop_last=True,
+                                worker_init_fn=self.seed_worker,
+                                generator=g)
         return dataloader
-
 
     def build_val_dataloader(self, subset=True):
-        dataset_val = Dataset(path,phase="val",sen2_amount=hparams["sen2_amount"])
-        dataloader = DataLoader(dataset_val,batch_size=hparams['eval_batch_size'],
-                          shuffle=False, num_workers=0,pin_memory=True,drop_last=True)
+        dataset_val = Dataset(path, phase="val",
+                              sen2_amount=hparams["sen2_amount"])
+        dataloader = DataLoader(dataset_val,
+                                batch_size=hparams['eval_batch_size'],
+                                shuffle=False, num_workers=0,
+                                pin_memory=True,
+                                drop_last=True)
         return dataloader
 
-    
     def build_test_dataloader(self, subset=False):
-        dataset_test = Dataset(path,phase="test",sen2_amount=hparams["sen2_amount"])
-        dataloader = DataLoader(dataset_test,batch_size=hparams['test_batch_size'],
-                          shuffle=False, num_workers=0,pin_memory=True,drop_last=False)    
-        return dataloader       
+        dataset_test = Dataset(path, phase="test",
+                               sen2_amount=hparams["sen2_amount"])
+        dataloader = DataLoader(dataset_test,
+                                batch_size=hparams['test_batch_size'],
+                                shuffle=False,
+                                num_workers=0,
+                                pin_memory=True,
+                                drop_last=False) 
+        return dataloader      
 
     def build_model(self):
         raise NotImplementedError
@@ -99,12 +102,14 @@ class Trainer:
 
         model = self.build_model()
         optimizer = self.build_optimizer(model)
-        self.global_step = training_step = load_checkpoint(model, optimizer, hparams['work_dir'])
+        self.global_step = training_step = load_checkpoint(model, optimizer,
+                                                           hparams['work_dir'])
         self.scheduler = scheduler = self.build_scheduler(optimizer)
         scheduler.step(training_step)
         dataloader = self.build_train_dataloader()
 
-        train_pbar = tqdm(dataloader, initial=training_step, total=float('inf'), dynamic_ncols=True, unit='step')
+        train_pbar = tqdm(dataloader, initial=training_step, total=float('inf'),
+                          dynamic_ncols=True, unit='step')
 
         list_loss = []
         val_list = []
@@ -113,13 +118,10 @@ class Trainer:
         epoch = 0
 
         while self.global_step < hparams['max_updates']+1:
-            
             c = 0
             loss_ = 0
             for idx, batch in enumerate(train_pbar):
-
                 if (training_step % hparams['val_check_interval'] == 0) and (training_step != 0):
-                    
                     with torch.no_grad():
                         model.eval()
                         val_res, val_step, val_loss = self.validate(training_step)
@@ -128,11 +130,10 @@ class Trainer:
                         if not hparams["train_diffsr"]:
                             val_loss_list.append(val_loss)
                         print(val_loss)
-                
                 if training_step % hparams['save_ckpt_interval'] == 0:
-                    save_checkpoint(model, optimizer, self.work_dir, training_step, hparams['num_ckpt_keep'])
+                    save_checkpoint(model, optimizer, self.work_dir,
+                                    training_step, hparams['num_ckpt_keep'])
                 model.train()
-                
                 batch = move_to_cuda(batch)
 
                 losses, total_loss = self.training_step(batch)
@@ -144,17 +145,15 @@ class Trainer:
                 training_step += 1
 
                 loss_ += total_loss.detach().item()
-                c+=1
-            
+                c += 1
                 scheduler.step(training_step)
                 self.global_step = training_step
                 if training_step % 1000 == 0:
                     self.log_metrics({f'tr/{k}': v for k, v in losses.items()}, training_step)
                 train_pbar.set_postfix(**tensors_to_scalars(losses))
-            
             list_loss.append(loss_/c)
-            epoch+=1
-            if (epoch%1==0):
+            epoch += 1
+            if (epoch % 1 == 0):
                 save_loss = pd.DataFrame({'training_step': [i for i in range(len(list_loss))], 'l': list_loss})
                 save_loss.to_csv(hparams["work_dir"]+"/train_loss.csv", sep=";")
                 save_val = pd.DataFrame({'train_step': val_steps, 'val_metrics': val_list})
@@ -162,37 +161,22 @@ class Trainer:
                     save_val['val_loss'] = val_loss_list
 
                 save_val.to_csv(hparams["work_dir"]+"/val_res.csv", sep=";")
-            gc.collect()
-
 
     def validate(self, training_step):
         val_dataloader = self.build_val_dataloader()
         pbar = tqdm(enumerate(val_dataloader), total=len(val_dataloader))
         val_loss = 0
-        c=0
+        c = 0
         val_metrics = {k: [] for k in self.metric_keys}
         for batch_idx, batch in pbar:
 
             batch = move_to_cuda(batch)
             img, rrdb_out, ret, loss = self.sample_and_test(batch)
-            img_hr = batch['img_hr']
-            img_lr = batch['img_lr']
-            img_lr_up = batch['img_lr_up']
 
             if not hparams["train_diffsr"]:
                 print(val_loss)
                 val_loss += loss.detach().item()
-                c+=1
-            """
-            if img is not None:
-                self.logger.add_image(f'Pred_{batch_idx}', plot_img(img[0]), self.global_step)
-                if hparams.get('aux_l1_loss'):
-                    self.logger.add_image(f'rrdb_out_{batch_idx}', plot_img(rrdb_out[0]), self.global_step)
-                if self.global_step <= hparams['val_check_interval']:
-                    self.logger.add_image(f'HR_{batch_idx}', plot_img(img_hr[0]), self.global_step)
-                    self.logger.add_image(f'LR_{batch_idx}', plot_img(img_lr[0]), self.global_step)
-                    self.logger.add_image(f'BL_{batch_idx}', plot_img(img_lr_up[0]), self.global_step)"""
-            
+                c += 1  
             metrics = {}
             metrics.update({k: np.mean(ret[k]) for k in self.metric_keys})
             for k in self.metric_keys:
@@ -202,24 +186,22 @@ class Trainer:
             val_loss = val_loss/c
         if hparams['infer']:
             print('Val results:', metrics)
-            
         else:
             if not self.first_val:
-                self.log_metrics({f'val/{k}': v for k, v in metrics.items()}, training_step)
+                self.log_metrics({f'val/{k}': v for k, v in metrics.items()},
+                                 training_step)
                 print('Val results:', metrics)
                 return {f'val/{k}': np.mean(v) for k, v in val_metrics.items()}, training_step, val_loss
             else:
                 print('Sanity val results:', metrics)
-                return  {f'val/{k}': np.mean(v) for k, v in val_metrics.items()}, training_step, val_loss
+                return {f'val/{k}': np.mean(v) for k, v in val_metrics.items()}, training_step, val_loss
         self.first_val = False
 
     def test(self):
         model = self.build_model()
         optimizer = self.build_optimizer(model)
         load_checkpoint(model, optimizer, hparams['work_dir'])
-        
         optimizer = None
-        
         self.results = {k: [] for k in self.metric_keys}
         self.results['key'] = []
         self.n_samples = 0
@@ -258,8 +240,10 @@ class Trainer:
                 if hparams['save_intermediate']:
                     item_name = item_names[0]
                     img, rrdb_out, imgs = self.model.sample(
-                        img_lr, img_lr_up, img_hr.shape, save_intermediate=True)
-                    os.makedirs(f"{gen_dir}/intermediate/{item_name}", exist_ok=True)
+                        img_lr, img_lr_up, img_hr.shape,
+                        save_intermediate=True)
+                    os.makedirs(f"{gen_dir}/intermediate/{item_name}",
+                                exist_ok=True)
                     Image.fromarray(self.tensor2img(img_hr)[0]).save(f"{gen_dir}/intermediate/{item_name}/G.png")
 
                     for i, (m, x_recon) in enumerate(tqdm(imgs)):
@@ -287,10 +271,10 @@ class Trainer:
                 if img_sr is not None:
                     metrics = list(self.metric_keys)
                     for k in metrics:
-                        self.results[k]+=ret[k]
+                        self.results[k] += ret[k]
                     self.n_samples += ret['n_samples']
                     print({k: np.mean(self.results[k]) for k in metrics}, 'total:', self.n_samples)
-                    self.results["key"]+=list(indexxx.cpu().numpy())
+                    self.results["key"] += list(indexxx.cpu().numpy())
 
                     if hparams['test_save_png'] and img_sr is not None:
                         img_sr = self.tensor2img(img_sr)
@@ -329,21 +313,27 @@ class Trainer:
                             if not hparams["misr"]:
                                 lr.save(f"{gen_dir}/LR/{item_name}.png")
                             if hparams['misr']:
-                                if hparams['test_batch_size']==1:
+                                if hparams['test_batch_size'] == 1:
                                     lr = [Image.fromarray(im[0]) for im in img_lr]
-                                    for e,im in enumerate(lr):
+                                    for e, im in enumerate(lr):
                                         im.save(f"{gen_dir}/LR/{item_name}_{e}.png")
-                                       
+                                     
                             lr_up.save(f"{gen_dir}/UP/{item_name}.png")
                             rrdb_o.save(f"{gen_dir}/RRDB/{item_name}.png")
 
-                        if hparams['misr'] and hparams['test_batch_size']>1:
+                        if hparams['misr'] and hparams['test_batch_size'] > 1:
                             for b in range(len(list_img_lr)):
                                 lr = list_img_lr[b]
                                 lr = [Image.fromarray(im[0]) for im in lr]
                                 for e,im in enumerate(lr):
-                                    im.save(f"{gen_dir}/LR/{item_names[b]}_{e}.png") 
-            self.results = {k: self.results[k] for k in ['psnr','ssim','lpips','mae','mse','shift_mae','key']}
+                                    im.save(f"{gen_dir}/LR/{item_names[b]}_{e}.png")
+            self.results = {k: self.results[k] for k in ['psnr',
+                                                         'ssim',
+                                                         'lpips',
+                                                         'mae',
+                                                         'mse',
+                                                         'shift_mae',
+                                                         'key']}
             res = pd.DataFrame(self.results)
             res.to_csv(hparams["work_dir"]+"/test_results.csv", sep=";")
 
@@ -384,12 +374,5 @@ if __name__ == '__main__':
 
     if not hparams['infer']:
         trainer.train()
-        """
-        profiler = LineProfiler()
-        profiler.add_function(trainer.build_train_dataloader)
-
-        lp_wrapper = profiler(trainer.train)
-        lp_wrapper()
-        profiler.print_stats()"""
     else:
         trainer.test()

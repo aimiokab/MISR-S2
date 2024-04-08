@@ -62,11 +62,11 @@ class SRDiffTrainer(Trainer):
         if hparams['use_rrdb']:
             img_sr, rrdb_out = self.model.sample(img_lr, img_lr_up, img_hr.shape)
         elif hparams['use_ltae']:
-            img_sr, rrdb_out = self.model.sample(img_lr, img_lr_up, img_hr.shape, dates = sample['dates_encoding'], config = self.config)
+            img_sr, rrdb_out = self.model.sample(img_lr, img_lr_up, img_hr.shape, dates=sample['dates_encoding'], config=self.config)
         elif hparams['use_highresnet']:
-            img_sr, rrdb_out = self.model.sample(img_lr, img_lr_up, img_hr.shape, alphas = sample['alphas'])
+            img_sr, rrdb_out = self.model.sample(img_lr, img_lr_up, img_hr.shape, alphas=sample['alphas'])
         elif hparams['use_rrdb_ltae']:
-            img_sr, rrdb_out = self.model.sample(img_lr, img_lr_up, img_hr.shape, dates = sample['dates_encoding'], config = self.config)
+            img_sr, rrdb_out = self.model.sample(img_lr, img_lr_up, img_hr.shape, dates=sample['dates_encoding'], config=self.config)
         else:
             img_sr, rrdb_out = self.model.sample(img_lr, img_lr_up, img_hr.shape)
         for b in range(img_sr.shape[0]):
@@ -97,11 +97,11 @@ class SRDiffTrainer(Trainer):
         if hparams['use_rrdb']:
             losses, _, _ = self.model(img_hr, img_lr, img_lr_up)
         elif hparams['use_ltae']:
-            losses, _, _ = self.model(img_hr, img_lr, img_lr_up, dates = batch['dates_encoding'], config = self.config)
+            losses, _, _ = self.model(img_hr, img_lr, img_lr_up, dates=batch['dates_encoding'], config=self.config)
         elif hparams['use_highresnet']:
-            losses, _, _ = self.model(img_hr, img_lr, img_lr_up, alphas = batch['alphas'])
+            losses, _, _ = self.model(img_hr, img_lr, img_lr_up, alphas=batch['alphas'])
         elif hparams['use_rrdb_ltae']:
-            losses, _, _ = self.model(img_hr, img_lr, img_lr_up, dates = batch['dates_encoding'], config = self.config)
+            losses, _, _ = self.model(img_hr, img_lr, img_lr_up, dates=batch['dates_encoding'], config=self.config)
         else:
             losses, _, _ = self.model(img_hr, img_lr, img_lr_up)
         total_loss = sum(losses.values())
