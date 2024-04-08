@@ -54,7 +54,7 @@ class SatDataSet(SRSatDataSet):
             j_lr = j // sr_scale
             img_hr = img_hr[i:i + self.patch_size, j:j + self.patch_size]
             img_lr = img_lr[i_lr:i_lr + self.patch_size_lr, j_lr:j_lr + self.patch_size_lr]
-        img_lr_up = imresize(img_lr / 256, hparams['sr_scale'])  # np.float [H, W, C]
+        img_lr_up = imresize(img_lr / 256, hparams['sr_scale'])
         img_hr, img_lr, img_lr_up = [self.to_tensor_norm(x).float() for x in [img_hr, img_lr, img_lr_up]]
         
 
@@ -71,7 +71,7 @@ class SatDataSet(SRSatDataSet):
         sr_scale = self.hparams['sr_scale']
         img_hr = Image.fromarray(img_hr)
         img_hr = self.data_aug_transforms(img_hr)
-        img_hr = np.asarray(img_hr)  # np.uint8 [H, W, C]
+        img_hr = np.asarray(img_hr)
         img_lr = imresize(img_hr, 1 / sr_scale)
         return img_hr, img_lr
 

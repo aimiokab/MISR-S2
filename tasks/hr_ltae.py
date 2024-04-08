@@ -10,7 +10,6 @@ class MISR(Trainer):
     def build_model(self):
         with open("./tasks/config_hrnet.json", "r") as read_file:
             self.config = json.load(read_file)
-        #{"in_channels": 3*2, "num_layers":10, "kernel_size":3, "channel_size":64}
         self.model = HighResLtaeNet(self.config)
         self.global_step = 0
         return self.model
