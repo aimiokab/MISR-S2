@@ -1,0 +1,16 @@
+base_config:
+  - ../sr_base.yaml
+  - ../df2k4x.yaml
+trainer_cls: tasks.highresnet.HighResnet
+# model
+lr: 0.0006
+
+# train and eval
+max_updates: 300000
+batch_size: 64
+eval_batch_size: 64
+test_batch_size: 1
+val_check_interval: 30000
+save_ckpt_interval : 20000
+sen2_amount: 4
+train_diffsr: false

@@ -1,0 +1,196 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[2]:
+
+
+#torch imports
+import torch
+from torch.utils.data import Dataset
+from torchvision.transforms import transforms
+from torch.utils.data import DataLoader
+
+#g eneral imports
+#from tqdm import tqdm
+import pandas as pd
+import numpy as np
+#from PIL import Image
+#import matplotlib.pyplot as plt
+#import random
+import os
+
+# image imports
+#import cv2
+#import skimage
+#from skimage import exposure
+import rasterio
+
+
+# custom imports
+from utils import dataloader_utils
+from utils.hparams import hparams
+from utils.utils import im_resize, im_crop
+
+# In[3]:
+
+
+# Define torch dataset Class
+class Dataset(Dataset):
+    def __init__(self,dataset_root,phase="train",spectral_matching="histogram",
+                     spatial_matching="grid",sen2_amount=1,return_type="interpolated", subset=True, sr_scale=4, subset_test=False):
+        """  Inputs:
+                - path to root of x,y,.pkl
+                - phase: str either train or test
+                - spectral_matching: str either ["histogram","moment","normalize"]
+                - spatial_matching: str either ["grid","shiftnet","none"]
+                - sen2_amount: int deciding how many sen2 are returned
+                - return_type: either ["interpolated","cross_sensor"]
+        """
+        
+        # set args as class props
+        self.dataset_root = dataset_root
+        self.spectral_matching = spectral_matching
+        self.spatial_matching = spatial_matching
+        self.phase = phase
+        self.sen2_amount = sen2_amount
+        self.return_type = return_type
+        self.sr_scale = sr_scale
+
+        # check if all args are valid
+        assert self.spectral_matching in ["histogram","moment"]
+        assert self.spatial_matching in ["grid","shiftnet"]
+        assert self.phase in ["train","test","val"]
+        assert self.return_type in ["interpolated","cross_sensor"]
+        
+        # load dataset file
+        if self.phase in ["train","val"]:
+            dataset = pd.read_pickle(os.path.join(self.dataset_root,"dataset_train.pkl"))
+        if self.phase == "test" :
+            #dataset = pd.read_pickle(os.path.join(self.dataset_root,"dataset_test.pkl"))
+            dataset = pd.read_pickle(os.path.join(self.dataset_root,"dataset_train.pkl"))
+            #####
+            dataset = dataset.loc[dataset.type_split=="val"]
+            if hparams["subset_test"]:
+                dataset = dataset.iloc[:100]
+
+        # filter no acquisiions:
+        dataset = dataset[dataset['sen2_acquisitions'].apply(lambda x: bool(x))]
+
+        # filter for phase
+        if subset==True:
+            self.dataset = dataset[(dataset["type_split"] == self.phase) & (dataset["subset"] == "in")]
+            if (hparams["subset_test"]==True) & (self.phase=="train"):
+                self.dataset = self.dataset.iloc[:512]
+        else : 
+            self.dataset = dataset[dataset["type_split"] == "val"]# self.phase]
+
+        # load spectral matching from file
+        self.spectral_matching = getattr(dataloader_utils,self.spectral_matching)
+        # load spatial_matching from file
+        self.spatial_matching = getattr(dataloader_utils,self.spatial_matching)
+
+        self.size_dataset = len(self.dataset)
+        self.items = self.dataset.index.astype(str)
+
+        self.to_tensor_norm = transforms.Compose([
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
+
+        
+    def __len__(self):
+        return(len(self.dataset))
+    
+    def __getitem__(self,idx):
+        
+        # get row from dataset file
+        dataset_row = self.dataset.iloc[idx]
+
+        dates_encoding = [(x - dataset_row.dates_spot6).days for x in dataset_row.dates_sen2]
+        
+        # get HR image path
+        hr_path = os.path.join(self.dataset_root,dataset_row["spot6_image"])
+        # get LR image paths by adding dataset root path infront of dict values
+        lr_paths  = {key: os.path.join(self.dataset_root,value) for key, value in dataset_row["sen2_acquisitions"].items()}
+        
+        # read HR image
+        with rasterio.open(hr_path) as hr_file:
+            hr = torch.Tensor(hr_file.read())
+        
+        # read lr image(s) into list
+        lr = [] # empty list to hold images
+        lr_days_delta = list(lr_paths.keys()) # get sorted list of images by time
+        for count,value in enumerate(lr_days_delta):
+            # stop loop when wanted amount of images reached
+            if len(lr)>=self.sen2_amount: 
+                break
+            #read lr image from path and append to list
+
+            with rasterio.open(lr_paths[value]) as im:
+                lr_im = im.read()
+                lr_im = torch.Tensor(lr_im)
+                if lr_im.shape[1]==lr_im.shape[2]:
+                    lr.append(lr_im)
+        # if there are not as many sen2 images as requested, repeat last entry in the list
+        alphas = [1 for i in range(len(lr))]
+        while len(lr) < self.sen2_amount: 
+            lr.append(lr[-1])
+            dates_encoding.append(dates_encoding[-1])
+            alphas.append(0)
+            
+        # perform standard preprocessing
+        hr = (hr/255).float()
+        
+        lr = [(tensor/10000).float() for tensor in lr]
+        
+        # perform spectral matching to closest sen2 image in time
+        hr = self.spectral_matching(lr[0],hr)
+        
+        # perform spatial matching to match each LR to HR
+        lr = [self.spatial_matching(lr_im,hr) for lr_im in lr]
+        
+        # stack lr to batch dimensions
+        lr = torch.stack(lr)
+        lr = lr.view(-1, lr.size(2), lr.size(3))
+
+
+        # stretch images
+        lr = dataloader_utils.minmax(lr)
+        hr = dataloader_utils.minmax(hr)
+        
+        hr, lr = im_crop(hr, lr, self.sr_scale)
+
+        """
+        if self.phase in ["train", "val"]:
+            #lr = lr[:,:40,:40]
+            #hr = hr[:,:160,:160]      
+
+            # last check
+            
+            if hr.shape!= torch.Size([3, 160, 160]):
+                hr = torch.nn.functional.interpolate(hr.unsqueeze(0), size=(160, 160), mode='bilinear', align_corners=True).squeeze(0)
+            if lr.shape!= torch.Size([self.sen2_amount*3, 40, 40]):
+                lr = torch.nn.functional.interpolate(lr.unsqueeze(0), size=(40, 40), mode='bilinear', align_corners=True).squeeze(0)
+        """
+        
+        img_lr_up = torch.tensor(im_resize(lr, self.sr_scale))
+
+        if self.sen2_amount==1:
+            hr, lr, img_lr_up = [self.to_tensor_norm(x).float() for x in [hr, lr, img_lr_up]]
+            dict_return = {
+                        'img_hr': hr, 'img_lr': lr,
+                        'img_lr_up': img_lr_up,'item_name': str(idx),
+                    }
+        else:
+            hr = self.to_tensor_norm(hr).float()
+            lr = lr.reshape([self.sen2_amount,3,lr.shape[-1],lr.shape[-1]])
+            img_lr_up = img_lr_up.reshape([self.sen2_amount,3,img_lr_up.shape[-1],img_lr_up.shape[-1]])
+
+            for i in range(self.sen2_amount):
+                lr[i] = self.to_tensor_norm(lr[i])
+                img_lr_up[i] = self.to_tensor_norm(img_lr_up[i])
+
+            dict_return = {
+                        'img_hr': hr, 'img_lr': lr,
+                        'img_lr_up': img_lr_up,'item_name': str(idx), 'dates_encoding': torch.tensor(dates_encoding[:self.sen2_amount]).type(torch.LongTensor), 'alphas': alphas
+                    }
+        return dict_return #(img_lr, img_hr, img_lr_up)

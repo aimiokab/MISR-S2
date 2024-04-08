@@ -1,0 +1,28 @@
+base_config:
+  - ./diffsr_base.yaml
+  - ./df2k4x.yaml
+trainer_cls: tasks.srdiff_sat.SRDiffSat
+
+lr: 0.0002
+
+# model
+unet_dim_mults: 1|2|3|4
+decay_steps: 100000
+hidden_size: 32
+
+# train and test
+batch_size: 32
+max_updates: 400000
+eval_batch_size: 32
+test_batch_size: 1
+train_diffsr: true
+val_check_interval: 380000
+save_ckpt_interval : 20000
+use_rrdb: false
+rrdb_num_feat: 1
+sen2_amount: 1
+fix_rrdb: true
+use_ltae: false
+use_highresnet: false
+use_rrdb: false
+use_rrdb_ltae: false

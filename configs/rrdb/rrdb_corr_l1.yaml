@@ -1,0 +1,19 @@
+base_config:
+  - ../sr_base.yaml
+  - ../df2k4x.yaml
+trainer_cls: tasks.rrdb.RRDBSatTask
+# model
+hidden_size: 64
+lr: 0.0002
+num_block: 17
+
+# train and eval
+max_updates: 500000
+batch_size: 32
+eval_batch_size: 1
+valid_steps: 3
+train_diffsr: false
+save_ckpt_interval: 10000
+val_check_interval: 80000
+sen2_amount: 1
+loss_type: l1_shift

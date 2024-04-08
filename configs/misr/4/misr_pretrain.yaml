@@ -1,0 +1,17 @@
+base_config:
+  - ../sr_base.yaml
+  - ../df2k4x.yaml
+trainer_cls: tasks.hr_ltae.MISR
+# model
+lr: 0.0007
+
+# train and eval
+max_updates: 400000
+batch_size: 32
+eval_batch_size: 32
+test_batch_size: 1
+val_check_interval: 30000
+save_ckpt_interval : 20000
+train_diffsr: false
+sen2_amount: 4
+misr_ref_image: closest
