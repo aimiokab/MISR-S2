@@ -8,12 +8,12 @@ lr: 0.0002
 # model
 unet_dim_mults: 1|2|3|4
 decay_steps: 100000
-hidden_size: 32
+hidden_size: 64
 
 # train and test
-batch_size: 32
+batch_size: 64
 max_updates: 400000
-eval_batch_size: 32
+eval_batch_size: 64
 test_batch_size: 1
 train_diffsr: true
 val_check_interval: 380000

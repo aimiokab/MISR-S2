@@ -12,17 +12,16 @@ rrdb_num_feat: 32
 rrdb_num_block: 15
 
 # train and test
-batch_size: 64
+batch_size: 32
 max_updates: 400000
-eval_batch_size: 64
+eval_batch_size: 32
 test_batch_size: 1
 train_diffsr: true
-val_check_interval: 100000
+val_check_interval: 75000
 save_ckpt_interval : 25000
 train_diffsr: true
 sen2_amount: 1
 use_rrdb: true
 use_ltae: false
 use_highresnet: false
-use_rrdb_ltae: false
 fix_rrdb: true

@@ -5,12 +5,12 @@ trainer_cls: tasks.rrdb_highresnet_fusion.RRDBhighresnet
 # model
 hidden_size: 32
 lr: 0.0002
-num_block: 8
+num_block: 15
 
 # train and eval
 max_updates: 400000
-batch_size: 10
-eval_batch_size: 10
+batch_size: 16
+eval_batch_size: 16
 test_batch_size: 1
 val_check_interval: 25000
 save_ckpt_interval : 25000
