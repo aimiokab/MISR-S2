@@ -1,8 +1,6 @@
 import torch
 import torch.nn.functional as F
 from models.diffsr_modules import RRDBNet
-from tasks.srdiff_celeb import CelebDataSet
-from tasks.srdiff_df2k import Df2kDataSet
 from tasks.srdiff_sat import SatDataSet
 from utils.hparams import hparams
 from tasks.trainer import Trainer
@@ -125,18 +123,7 @@ class RRDBTaskSat(Trainer):
         return min_l1
 
 
-class RRDBCelebTask(RRDBTask):
-    def __init__(self):
-        super().__init__()
-        self.dataset_cls = CelebDataSet
-
-
-class RRDBDf2kTask(RRDBTask):
-    def __init__(self):
-        super().__init__()
-        self.dataset_cls = Df2kDataSet
-
 class RRDBSatTask(RRDBTaskSat):
     def __init__(self):
         super().__init__()
-        self.dataset_cls = None #SatDataSet
+        self.dataset_cls = None

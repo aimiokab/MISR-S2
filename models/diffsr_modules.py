@@ -136,7 +136,6 @@ class Unet(nn.Module):
     def forward(self, x, time, cond, img_lr_up):
         t = self.time_pos_emb(time)
         t = self.mlp(t)
-        #import ipdb; ipdb.set_trace()
         h = []
         if hparams['use_rrdb']: #len(cond)!=1 and 
             cond = self.cond_proj(torch.cat(cond[2::3], 1))
@@ -144,7 +143,6 @@ class Unet(nn.Module):
             cond = self.cond_proj(cond)
         else:
             cond = self.cond_proj(cond[0])
-        #import ipdb; ipdb.set_trace()
 
         for i, (resnet, resnet2, downsample) in enumerate(self.downs):
             x = resnet(x, t)
