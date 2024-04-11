@@ -2,8 +2,6 @@
 
 This repository contains the implementation of our workshop paper on "Cross-sensor super-resolution of irregularly sampled Sentinel-2 time series".
 
-## Preprocess data
-
 ## Train
 
 ### Single-image super-resolution (SISR)
