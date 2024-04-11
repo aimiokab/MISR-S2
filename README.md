@@ -34,8 +34,6 @@ CUDA_VISIBLE_DEVICES=0 python tasks/trainer.py --config checkpoints/sisr/rrdb_ck
 CUDA_VISIBLE_DEVICES=0 python tasks/trainer.py --config checkpoints/sisr/srdiff_rrdb_ckpt/config.yaml --exp_name sisr/srdiff_rrdb_ckpt --infer
 ```
 
-## License
-
 ## Credits
 
 The implementation is based on the following works:
