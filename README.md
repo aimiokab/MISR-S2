@@ -1,6 +1,22 @@
 # Cross-sensor super-resolution of irregularly sampled Sentinel-2 time series
 
-This repository contains the implementation of our workshop paper on ["Cross-sensor super-resolution of irregularly sampled Sentinel-2 time series"](https://arxiv.org/abs/2404.16409).
+This repository contains the implementation of our workshop paper on ["Cross-sensor super-resolution of irregularly sampled Sentinel-2 time series"](https://arxiv.org/abs/2404.16409). If you use our work, please cite the following:
+
+```
+@inproceedings{okabayashi_crosssensor_2024,
+  title = {Cross-Sensor Super-Resolution of Irregularly Sampled {{Sentinel-2}} Time Series},
+  booktitle = {{{EARTHVISION}} 2024 {{IEEE}}/{{CVF CVPR Workshop}}. {{Large Scale Computer Vision}} for {{Remote Sensing Imagery}}},
+  author = {Okabayashi, Aimi and Audebert, Nicolas and Donike, Simon and Pelletier, Charlotte},
+  date = {2024-06},
+  location = {Seattle, United States},
+  url = {https://hal.science/hal-04552850},
+  urldate = {2024-05-07},
+}
+```
+
+## Dataset
+
+We use the BreizhSR dataset. Link to come soon...
 
 ## Train
 
