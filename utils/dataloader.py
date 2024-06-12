@@ -16,10 +16,10 @@ from utils.utils import im_resize
 
 # Define torch dataset Class
 class BreizshSRDataset(Dataset):
-    def __init__(self, dataset_root : str, phase : str = "train", sen2_amount : int = 1, spectral_matching : str = "histogram"):
+    def __init__(self, dataset_root : str, split : str = "train", sen2_amount : int = 1, spectral_matching : str = "histogram"):
         """  Inputs:
                 - path to root of x,y,.pkl
-                - phase: str either train or test
+                - split: str either train or test
                 - spectral_matching: str either ["histogram","moment","normalize"]
                 - spatial_matching: str either ["grid","shiftnet","none"]
                 - sen2_amount: int deciding how many sen2 are returned
@@ -28,7 +28,7 @@ class BreizshSRDataset(Dataset):
         
         # Set args as object attributes
         self.dataset_root = dataset_root
-        self.phase = phase
+        self.split = phase
         self.sen2_amount = sen2_amount
         self.spectral_matching = spectral_matching
 
@@ -38,15 +38,15 @@ class BreizshSRDataset(Dataset):
             raise Exception("There should be a ``preprocessed`` folder at {self.dataset_root}. Maybe you didn't run the preprocessing script?")
         
         # Read dataset DataFrame from disk
-        if self.phase in ["train", "val"]:
+        if self.split in ["train", "val"]:
             self.dataset = pd.read_pickle(os.path.join(preprocessed_path, "dataset_train.pkl"))
-        if self.phase == "test" :
+        if self.split == "test" :
             self.dataset = pd.read_pickle(os.path.join(preprocessed_path, "dataset_test.pkl"))
 
         # Keep only the rows from the request split
-        self.dataset = self.dataset[self.dataset["type_split"] == self.phase]
+        self.dataset = self.dataset[self.dataset["type_split"] == self.split]
 
-        if self.phase == "test" and hparams["subset_test"]:
+        if self.split == "test" and hparams["subset_test"]:
             random.seed(45) # FIXME
             self.dataset = self.dataset.loc[self.dataset.index.isin(random.sample(list(self.dataset.index),100))] # FIXME ??
         
@@ -129,6 +129,6 @@ class BreizshSRDataset(Dataset):
                         'indices': ind,
                     }
 
-        if self.phase == "test":
+        if self.split == "test":
             dict_return['indexes'] = dataset_row['indexes']
         return dict_return

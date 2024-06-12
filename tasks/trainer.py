@@ -50,7 +50,7 @@ class Trainer:
     def build_train_dataloader(self, subset=True):
         g = torch.Generator()
         g.manual_seed(0)
-        dataset_train = BreizhSRDataset(path, phase="train",
+        dataset_train = BreizhSRDataset(path, split="train",
                                 sen2_amount=hparams["sen2_amount"])
         dataloader = DataLoader(dataset_train,
                                 batch_size=hparams["batch_size"],
@@ -63,7 +63,7 @@ class Trainer:
         return dataloader
 
     def build_val_dataloader(self, subset=True):
-        dataset_val = BreizhSRDataset(path, phase="val",
+        dataset_val = BreizhSRDataset(path, split="val",
                               sen2_amount=hparams["sen2_amount"])
         dataloader = DataLoader(dataset_val,
                                 batch_size=hparams['eval_batch_size'],
@@ -73,7 +73,7 @@ class Trainer:
         return dataloader
 
     def build_test_dataloader(self, subset=False):
-        dataset_test = BreizhSRDataset(path, phase="test",
+        dataset_test = BreizhSRDataset(path, split="test",
                                sen2_amount=hparams["sen2_amount"])
         dataloader = DataLoader(dataset_test,
                                 batch_size=hparams['test_batch_size'],
