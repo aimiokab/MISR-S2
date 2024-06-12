@@ -7,45 +7,6 @@ from math import exp
 import torch.nn as nn
 
 
-class ImgMerger:
-    def __init__(self, eval_fn):
-        self.eval_fn = eval_fn
-        self.loc2imgs = {}
-        self.max_x = 0
-        self.max_y = 0
-        self.clear()
-
-    def clear(self):
-        self.loc2imgs = {}
-        self.max_x = 0
-        self.max_y = 0
-
-    def push(self, imgs, loc, loc_bdr):
-        """
-
-        Args:
-            imgs: each of img is [C, H, W] np.array, range: [0, 255]
-            loc: string, e.g., 0_0, 0_1 ...
-        """
-        self.max_x, self.max_y = loc_bdr
-        x, y = loc
-        self.loc2imgs[f'{x},{y}'] = imgs
-        if len(self.loc2imgs) == self.max_x * self.max_y:
-            return self.compute()
-
-    def compute(self):
-        img_inputs = []
-        for i in range(len(self.loc2imgs['0,0'])):
-            img_full = []
-            for x in range(self.max_x):
-                imgx = []
-                for y in range(self.max_y):
-                    imgx.append(self.loc2imgs[f'{x},{y}'][i])
-                img_full.append(np.concatenate(imgx, 2))
-            img_inputs.append(np.concatenate(img_full, 1))
-        self.clear()
-        return self.eval_fn(*img_inputs)
-
 
 ##########
 # SSIM

@@ -106,7 +106,7 @@ class Dataset(Dataset):
                 break
             #read lr image from path and append to list
 
-            with rasterio.open(lr_paths[str(value)]) as im:
+            with rasterio.open(lr_paths[value]) as im:
                 lr_im = im.read()
                 lr_im = torch.Tensor(lr_im)
                 if lr_im.shape[1]==lr_im.shape[2]:
