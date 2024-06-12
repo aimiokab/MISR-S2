@@ -17,7 +17,7 @@ from utils.hparams import hparams, set_hparams
 import numpy as np
 from utils.utils import move_to_cuda, load_checkpoint, save_checkpoint, tensors_to_scalars, Measure
 
-from utils.dataloader import Dataset
+from utils.dataloader import BreizhSRDataset
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -50,7 +50,7 @@ class Trainer:
     def build_train_dataloader(self, subset=True):
         g = torch.Generator()
         g.manual_seed(0)
-        dataset_train = Dataset(path, phase="train",
+        dataset_train = BreizhSRDataset(path, phase="train",
                                 sen2_amount=hparams["sen2_amount"])
         dataloader = DataLoader(dataset_train,
                                 batch_size=hparams["batch_size"],
@@ -63,7 +63,7 @@ class Trainer:
         return dataloader
 
     def build_val_dataloader(self, subset=True):
-        dataset_val = Dataset(path, phase="val",
+        dataset_val = BreizhSRDataset(path, phase="val",
                               sen2_amount=hparams["sen2_amount"])
         dataloader = DataLoader(dataset_val,
                                 batch_size=hparams['eval_batch_size'],
@@ -73,7 +73,7 @@ class Trainer:
         return dataloader
 
     def build_test_dataloader(self, subset=False):
-        dataset_test = Dataset(path, phase="test",
+        dataset_test = BreizhSRDataset(path, phase="test",
                                sen2_amount=hparams["sen2_amount"])
         dataloader = DataLoader(dataset_test,
                                 batch_size=hparams['test_batch_size'],
