@@ -16,7 +16,8 @@ This repository contains the implementation of our workshop paper on ["Cross-sen
 
 ## Dataset
 
-We use the BreizhSR dataset. Link to come soon...
+We use the [BreizhSR dataset](https://zenodo.org/records/11551220) available on Zenodo. BreizhSR is a dataset targetting super-resolution of (RGB bands of) Sentinel-2 images by providing time series colocated in space and time with SPOT-6/7 acquisitions. This dataset is composed of cloud free Sentinel-2 time series (visible bands at 10m resolution) and SPOT-6/7 pansharpened color images resampled 2.5m resolution. The study area is the region of Brittany (Breizh in the local language), located on the northwestern coast of France with an oceanic climate. The dataset covers about 35 000 km² with mostly agricultural areas (about 80 %). All acquisitions are from 2018 in the Brittany region of France.
+See its webpage for additional details regarding the dataset and its collection process.
 
 ## Train
 
@@ -53,6 +54,6 @@ CUDA_VISIBLE_DEVICES=0 python tasks/trainer.py --config checkpoints/sisr/srdiff_
 ## Credits
 
 The implementation is based on the following works:
-* [SRDiff: Single Image Super-Resolution with Diffusion Probabilistic Models](https://arxiv.org/abs/2104.14951)
+* [SRDiff: Single Image Super-Resolution with Diffusion Probabilistic Models](https://arxiv.org/abs/2104.14951) and its [GitHub repository](https://github.com/LeiaLi/SRDiff)
 * [HighRes-net: Recursive Fusion for Multi-Frame Super-Resolution of Satellite Imagery](https://arxiv.org/abs/2002.06460)
 
