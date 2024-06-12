@@ -28,7 +28,7 @@ class BreizshSRDataset(Dataset):
         
         # Set args as object attributes
         self.dataset_root = dataset_root
-        self.split = phase
+        self.split = split
         self.sen2_amount = sen2_amount
         self.spectral_matching = spectral_matching
 
