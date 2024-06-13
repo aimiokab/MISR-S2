@@ -75,7 +75,7 @@ if __name__ == '__main__':
     df_train_misr = preprocess_and_save(path, "train", int(args.sen2_amount))
     df_test_misr = preprocess_and_save(path, "test", int(args.sen2_amount))
     df_train = df_train_sisr.join(df_train_misr[["path_lr_misr","alphas","dates_encoding"]])
-    df_test = df_train_sisr.join(df_test_misr[["path_lr_misr","alphas","dates_encoding"]])
+    df_test = df_test_sisr.join(df_test_misr[["path_lr_misr","alphas","dates_encoding"]])
 
     df_train.to_pickle(os.path.join(path, 'preprocessed', 'dataset_train.pkl'))
     df_test.to_pickle(os.path.join(path, 'preprocessed', 'dataset_test.pkl'))
