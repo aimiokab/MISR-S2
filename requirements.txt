@@ -11,3 +11,4 @@ einops
 Pillow
 seaborn
 opencv-python
+click

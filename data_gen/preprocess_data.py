@@ -1,81 +1,95 @@
+import argparse
+import click
+import logging
 import os
 import pandas as pd
-from tqdm import tqdm
-import argparse
 import torch
+
+from tqdm import tqdm
+
 from dataset import Dataset
 
-def preprocess_and_save(path, phase="train", sen2_amount=1, dataset_folder="BreizhSR"):
-    dataset_name = "dataset_"+phase+".pkl"
+def preprocess_and_save(path_to_dataset, split="train", max_s2_images=1):
+    dataset_name = f"dataset_{split}.pkl"
     
-    if sen2_amount==1:
-        dict = {}
+    dict = {}
+    # Single-image SR
+    if max_s2_images == 1:
+        sr_type = "SISR"
         dict_keys = ['path_lr', 'path_hr', 'path_lr_up']
-        type = "SISR"
-        imgs = ['img_hr', 'img_lr', 'img_lr_up']
+        image_keys = ['img_hr', 'img_lr', 'img_lr_up']
+    # Multi-image SR
     else:
-        dict = {}
+        sr_type = "MISR"
         dict_keys = ['path_lr']
-        type = "MISR"
-        imgs = ['img_lr']
-    type_path = [path, "preprocessed", type, "dataset_"+phase]
-    path_save = os.path.join('', *type_path)
+        image_keys = ['img_lr']
+
+    output_folder = os.path.join(path_to_dataset, "preprocessed", sr_type, f"dataset_{split}")
     
-    for key in imgs:
-        sub_path = os.path.join(path_save, key)
-        if not os.path.exists(sub_path):
-            os.makedirs(sub_path)
-    dataset_pkl = pd.read_pickle(os.path.join(path, dataset_folder,dataset_name))
-    dataset= Dataset(os.path.join(path, dataset_folder),phase=phase,sen2_amount=sen2_amount)
+    # Create subfolders for the input series and output ground truths
+    for key in image_keys:
+        subfolder_path = os.path.join(output_folder, key)
+        if not os.path.exists(subfolder_path):
+            os.makedirs(subfolder_path)
+
+    # Read dataframe and load dataset 
+    dataset = Dataset(path_to_dataset, split=split, max_s2_images=max_s2_images)
+    dataset_pkl = dataset.dataset
 
     
-    pbar = tqdm(dataset)
     alphas_dates = {'alphas': [], 'dates_encoding': []}
 
-    indexes = dataset_pkl.index
-
-    for e,data in enumerate(pbar):
-
-        index = indexes[e]
+    for idx, data in enumerate(tqdm(dataset)):
+        index = dataset_pkl.index[idx]
         
-        if sen2_amount > 1:
+        if max_s2_images > 1:
             alphas_dates['alphas'].append(data["alphas"])
             alphas_dates['dates_encoding'].append(data["dates_encoding"])
-        for key in imgs:
-            p = [path_save, key, str(index)+".pt"]
-            new_p = os.path.join('', *p)
 
-            torch.save(data[key], new_p)
+        # Unpack and save torch Tensors on disk
+        for key in image_keys:
+            tensor_path = os.path.join(output_folder, key, f"index.pt")
+            torch.save(data[key], tensor_path)
     
-    for i,key in enumerate(dict_keys):
-        dict[key] = [os.path.join('',*(type_path[1:]+[imgs[i],str(x)+".pt"])) for x in indexes]
-    dict["index"] = indexes
-    df = pd.DataFrame(dict).set_index("index")
+    for i, key in enumerate(dict_keys):
+        dict[key] = [os.path.join('',*(type_path[1:]+[image_keys[i],str(x)+".pt"])) for x in indexes]
 
+    dict["index"] = dataset_pkl.index
+
+    # Create new DataFrame for preprocessed dataset
+    df = pd.DataFrame(dict).set_index("index")
     df = dataset_pkl.join(df)
 
-    if sen2_amount>1:
+    if max_s2_images > 1:  # MISR, add columns for date encoding
         df = df.assign(alphas = alphas_dates['alphas'])
         df = df.assign(dates_encoding = alphas_dates['dates_encoding'])
         df = df.rename(columns={'path_lr': 'path_lr_misr'})
-    else:
+    else: # SISR
         df = df.rename(columns={'path_lr': 'path_lr_sisr'})
     return df
 
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='preprocessing')
-    parser.add_argument("--sen2_amount", help='number of images')
-    args = parser.parse_args()
-
-    path = "/share/projects/sesure/aimi/data"
-
-    df_train_sisr = preprocess_and_save(path, "train", 1)
+@click.command()
+@click.argument('path_to_dataset', type=click.Path(exists=True))
+#@click.option('--split', type=click.Choice(['train', 'test'], case_sensitive=False), help="Split to preprocess (either train or test)")
+@click.option('--max_s2_images', type=int, help="Maximum number of Sentinel-2 images to include in the input series (use 1 for single-image super-resolution)")
+def preprocess_dataset(path_to_dataset, max_s2_images=1):
+    # Preprocessing SISR train set
+    df_train_sisr = preprocess_and_save(path_to_dataset, "train", 1)
+    # Preprocessing SISR test set
     df_test_sisr = preprocess_and_save(path, "test", 1)
-    df_train_misr = preprocess_and_save(path, "train", int(args.sen2_amount))
-    df_test_misr = preprocess_and_save(path, "test", int(args.sen2_amount))
+    # Preprocessing MISR train set
+    df_train_misr = preprocess_and_save(path, "train", max_s2_images)
+    # Preprocessing MISR test set
+    df_test_misr = preprocess_and_save(path, "test", max_s2_images)
+
+
+    # Join DataFrames
     df_train = df_train_sisr.join(df_train_misr[["path_lr_misr","alphas","dates_encoding"]])
     df_test = df_test_sisr.join(df_test_misr[["path_lr_misr","alphas","dates_encoding"]])
 
+    # Save DataFrames on disk in `preprocessed` subfolder
     df_train.to_pickle(os.path.join(path, 'preprocessed', 'dataset_train.pkl'))
     df_test.to_pickle(os.path.join(path, 'preprocessed', 'dataset_test.pkl'))
+
+if __name__ == '__main__':
+    preprocess_dataset()
