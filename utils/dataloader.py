@@ -45,10 +45,6 @@ class BreizshSRDataset(Dataset):
 
         # Keep only the rows from the request split
         self.dataset = self.dataset[self.dataset["type_split"] == self.split]
-
-        if self.split == "test" and hparams["subset_test"]:
-            random.seed(45) # FIXME
-            self.dataset = self.dataset.loc[self.dataset.index.isin(random.sample(list(self.dataset.index),100))] # FIXME ??
         
         self.dataset['indexes'] = self.dataset.index
 
