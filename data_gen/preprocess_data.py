@@ -16,7 +16,7 @@ def preprocess_and_save(path_to_dataset, split="train", max_s2_images=1):
     # Single-image SR
     if max_s2_images == 1:
         sr_type = "SISR"
-        dict_keys = ['path_lr', 'path_hr', 'path_lr_up']
+        dict_keys = ['path_hr', 'path_lr', 'path_lr_up']
         image_keys = ['img_hr', 'img_lr', 'img_lr_up']
     # Multi-image SR
     else:
