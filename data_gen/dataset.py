@@ -105,9 +105,6 @@ class Dataset(Dataset):
         hr = (hr/255).float()
         lr = [(tensor/10000).float() for tensor in lr]
         
-        # perform spectral matching to closest sen2 image in time
-        hr = self.spectral_matching(lr[0],hr)
-        
         # stack lr to batch dimensions
         lr = torch.stack(lr)
         lr = lr.view(-1, lr.size(2), lr.size(3))
