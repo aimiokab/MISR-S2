@@ -44,7 +44,7 @@ class BreizshSRDataset(Dataset):
             self.dataset = pd.read_pickle(os.path.join(preprocessed_path, "dataset_test.pkl"))
 
         # Keep only the rows from the request split
-        self.dataset = self.dataset[self.dataset["type_split"] == self.split]
+        self.dataset = self.dataset[self.dataset["split"] == self.split]
         
         self.dataset['indexes'] = self.dataset.index
 
