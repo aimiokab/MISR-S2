@@ -53,10 +53,6 @@ class Dataset(Dataset):
         self.size_dataset = len(self.dataset)
         self.items = self.dataset.index.astype(str)
 
-        self.to_tensor_norm = transforms.Compose([
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-        ])
-
         
     def __len__(self):
         return(len(self.dataset))
