@@ -19,6 +19,18 @@ This repository contains the implementation of our workshop paper on ["Cross-sen
 We use the [BreizhSR dataset](https://zenodo.org/records/11551220) available on Zenodo. BreizhSR is a dataset targetting super-resolution of (RGB bands of) Sentinel-2 images by providing time series colocated in space and time with SPOT-6/7 acquisitions. This dataset is composed of cloud free Sentinel-2 time series (visible bands at 10m resolution) and SPOT-6/7 pansharpened color images resampled 2.5m resolution. The study area is the region of Brittany (Breizh in the local language), located on the northwestern coast of France with an oceanic climate. The dataset covers about 35 000 km² with mostly agricultural areas (about 80 %). All acquisitions are from 2018 in the Brittany region of France.
 See its webpage for additional details regarding the dataset and its collection process.
 
+### Preprocessing
+
+We provide two ways to load the BreizhSR dataset using PyTorch: using `rasterio` or using `torch`. The latter is **heavily** recommended, although it requires an offline preprocessing step to extract all image pairs as `torch.Tensor`. This is automated using the `data_gen/preprocess_data.py` script. You can use it by running the command:
+
+```bash
+python data_gen/preprocess_data.py path/to/where/you/stored/BreizhSR/
+```
+
+The resulting dataset will be stored by default in the `preprocessed/` subfolder. You can then load this dataset using `utils/dataloader.py`.
+
+If this seems inconvenient for you, or you just want to access the raw data, you can use the `BreizhSRDataset` class from the `data_gen/dataset.py` module, which reads the original image rasters using `rasterio`.
+
 ## Train
 
 ### Single-image super-resolution (SISR)
