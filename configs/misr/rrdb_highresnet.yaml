@@ -17,3 +17,8 @@ save_ckpt_interval : 25000
 train_diffsr: false
 sen2_amount: 8
 train_diffsr: false
+# add these lines for testing:
+save_intermediate: False
+test_save_png: True
+misr: True
+test_diff: False

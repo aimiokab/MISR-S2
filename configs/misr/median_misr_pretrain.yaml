@@ -16,4 +16,4 @@ val_check_interval: 30000
 save_ckpt_interval : 20000
 train_diffsr: false
 sen2_amount: 8
-misr_ref_image: median
+misr_ref_image: median # closest or median -> reference image (for more details please refer to HighRes-net paper)

@@ -18,3 +18,7 @@ val_check_interval: 25000
 sen2_amount: 1
 train_diffsr: false
 loss_type: l1
+save_intermediate: False
+test_save_png: True
+misr: False
+test_diff: False

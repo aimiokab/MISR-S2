@@ -12,7 +12,7 @@ rrdb_num_feat: 32
 rrdb_num_block: 15
 
 # train and test
-batch_size: 32
+batch_size: 8
 max_updates: 400000
 eval_batch_size: 32
 test_batch_size: 1
@@ -25,3 +25,9 @@ use_rrdb: true
 use_ltae: false
 use_highresnet: false
 fix_rrdb: true
+loss_type: l1
+# add these lines for testing:
+save_intermediate: False
+test_save_png: True
+misr: False
+test_diff: True

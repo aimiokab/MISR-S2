@@ -1,3 +1,5 @@
+# config file for HighRes-net L-TAE
+
 base_config:
   - ../sr_base.yaml
   - ../df2k4x.yaml
@@ -16,4 +18,9 @@ val_check_interval: 30000
 save_ckpt_interval : 20000
 train_diffsr: false
 sen2_amount: 8
-misr_ref_image: closest
+misr_ref_image: closest # closest or median -> reference image (for more details please refer to HighRes-net paper)
+# add these lines for testing:
+save_intermediate: False
+test_save_png: True
+misr: True
+test_diff: False

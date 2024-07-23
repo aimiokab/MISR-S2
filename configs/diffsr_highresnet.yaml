@@ -25,5 +25,10 @@ sen2_amount: 8
 use_ltae: false
 use_rrdb: false
 use_highresnet: true
-misr_ref_image: closest
+misr_ref_image: closest # closest or median -> reference image (for more details please refer to HighRes-net paper)
 misr: true
+# add these lines for testing:
+save_intermediate: False
+test_save_png: True
+misr: True
+test_diff: True

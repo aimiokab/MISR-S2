@@ -16,5 +16,9 @@ train_diffsr: false
 save_ckpt_interval: 20000
 val_check_interval: 25000
 sen2_amount: 1
-train_diffsr: false
+train_diffsr: False
 loss_type: l1
+save_intermediate: False
+test_save_png: True
+misr: False
+test_diff: False

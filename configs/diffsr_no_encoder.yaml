@@ -26,3 +26,4 @@ use_ltae: false
 use_highresnet: false
 use_rrdb: false
 use_rrdb_ltae: false
+loss_type: l1
