@@ -3,6 +3,8 @@
 import torch.nn as nn
 import torch
 
+from utils.hparams import hparams
+
 
 class ResidualBlock(nn.Module):
     def __init__(self, channel_size=64, kernel_size=3):
@@ -204,12 +206,11 @@ class HRNet(nn.Module):
         lrs = lrs.view(-1, seq_len, c, heigth, width)
         alphas = alphas.view(-1, seq_len, 1, 1, 1)
 
-        refs, _ = torch.median(lrs[:, :9], 1, keepdim=True)  # reference image aka anchor, shared across multiple views
+        refs, _ = torch.median(lrs[:, :hparams["sen2_amount"]+1], 1, keepdim=True)  # reference image aka anchor, shared across multiple views
         refs = refs.repeat(1, seq_len, 1, 1, 1)
         stacked_input = torch.cat([lrs, refs], 2) # tensor (B, L, 2*C_in, W, H)
         
         stacked_input = stacked_input.view(batch_size * seq_len, 2*c, width, heigth)
-        #import ipdb; ipdb.set_trace()
         layer1 = self.encode(stacked_input) # encode input tensor
         layer1 = layer1.view(batch_size, seq_len, -1, width, heigth) # tensor (B, L, C, W, H)
 
