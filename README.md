@@ -37,7 +37,7 @@ If this seems inconvenient for you, or you just want to access the raw data, you
 
 ```
 # pretrain backbone model (RRDB or other SISR model)
-CUDA_VISIBLE_DEVICES=0 python tasks/trainer.py --config configs/rrdb/sat_pretrain.yaml --exp_name sisr/rrdb_ckpt --reset
+CUDA_VISIBLE_DEVICES=0 python tasks/trainer.py --config configs/rrdb/rrdb.yaml --exp_name sisr/rrdb_ckpt --reset
 
 # train SRDiff conditioned by the backbone model
 CUDA_VISIBLE_DEVICES=0 python tasks/trainer.py --config configs/diffsr_sat.yaml --exp_name sisr/srdiff_rrdb_ckpt --hparams="rrdb_ckpt=checkpoints/sisr/rrdb_ckpt"
