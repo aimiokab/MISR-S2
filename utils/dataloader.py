@@ -15,7 +15,7 @@ from utils import dataloader_utils
 from utils.utils import im_resize
 
 # Define torch dataset Class
-class BreizshSRDataset(Dataset):
+class BreizhSRDataset(Dataset):
     def __init__(self, dataset_root : str, split : str = "train", sen2_amount : int = 1, spectral_matching : str = "histogram"):
         """  Inputs:
                 - path to root of x,y,.pkl
