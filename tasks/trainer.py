@@ -1,3 +1,6 @@
+import sys
+sys.path.append('/path/to/MISR-S2')
+
 import importlib
 import os
 import subprocess
@@ -21,7 +24,7 @@ from utils.dataloader import BreizhSRDataset
 import warnings
 warnings.filterwarnings("ignore")
 
-path = "/share/projects/sesure/aimi/data"
+path = "/path/to/breizhsr"
 
 
 class Trainer:
@@ -47,9 +50,7 @@ class Trainer:
         os.makedirs(log_dir, exist_ok=True)
         return SummaryWriter(log_dir=log_dir, **kwargs)
 
-    def build_train_dataloader(self, subset=True):
-        g = torch.Generator()
-        g.manual_seed(0)
+    def build_train_dataloader(self, subset=False):
         dataset_train = BreizhSRDataset(path, split="train",
                                 sen2_amount=hparams["sen2_amount"])
         dataloader = DataLoader(dataset_train,
@@ -57,12 +58,10 @@ class Trainer:
                                 shuffle=True,
                                 num_workers=4,
                                 pin_memory=True,
-                                drop_last=True,
-                                worker_init_fn=self.seed_worker,
-                                generator=g)
+                                drop_last=True)
         return dataloader
 
-    def build_val_dataloader(self, subset=True):
+    def build_val_dataloader(self, subset=False):
         dataset_val = BreizhSRDataset(path, split="val",
                               sen2_amount=hparams["sen2_amount"])
         dataloader = DataLoader(dataset_val,

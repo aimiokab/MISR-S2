@@ -1,7 +1,6 @@
 import torch
 import torch.nn.functional as F
 from models.diffsr_modules import RRDBNet
-from tasks.srdiff_sat import SatDataSet
 from utils.hparams import hparams
 from tasks.trainer import Trainer
 
@@ -81,8 +80,6 @@ class RRDBTaskSat(Trainer):
             loss = F.l1_loss(img_sr, img_hr, reduction='mean')
         elif hparams["loss_type"]=="l1_shift":
             loss = self.shift_l1_loss(img_hr, img_sr)
-        #print(img_hr.shape)
-        #print("ok")
         for b in range(img_sr.shape[0]):
             s = self.measure.measure(img_sr[b], img_hr[b], img_lr[b], hparams['sr_scale'])
 
