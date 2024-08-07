@@ -1,7 +1,7 @@
 import os
 import sys
-
-sys.path.insert(0, "../")
+parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, parentdir)
 
 import numpy as np
 import pandas as pd
