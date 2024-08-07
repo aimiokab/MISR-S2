@@ -52,13 +52,13 @@ def preprocess_and_save(
 
         # Unpack and save torch Tensors on disk
         for key in image_keys:
-            tensor_path = os.path.join(output_folder, key, f"index.pt")
+            tensor_path = os.path.join(output_folder, key, f"{index}.pt")
             torch.save(data[key], tensor_path)
 
     for i, key in enumerate(dict_keys):
         dict[key] = [
-            os.path.join("", *(type_path[1:] + [image_keys[i], str(x) + ".pt"]))
-            for x in indexes
+            os.path.join("preprocessed", sr_type, f"dataset_{split}", f"{image_keys[i]}", f"{index}.pt")
+            for index in dataset_pkl.index
         ]
 
     dict["index"] = dataset_pkl.index
@@ -81,17 +81,18 @@ def preprocess_and_save(
 @click.option(
     "--max_s2_images",
     type=int,
+    default=8,
     help="Maximum number of Sentinel-2 images to include in the input series (use 1 for single-image super-resolution)",
 )
 def preprocess_dataset(path_to_dataset, max_s2_images=1):
     # Preprocessing SISR train set
     df_train_sisr = preprocess_and_save(path_to_dataset, "train", 1)
     # Preprocessing SISR test set
-    df_test_sisr = preprocess_and_save(path, "test", 1)
+    df_test_sisr = preprocess_and_save(path_to_dataset, "test", 1)
     # Preprocessing MISR train set
-    df_train_misr = preprocess_and_save(path, "train", max_s2_images)
+    df_train_misr = preprocess_and_save(path_to_dataset, "train", max_s2_images)
     # Preprocessing MISR test set
-    df_test_misr = preprocess_and_save(path, "test", max_s2_images)
+    df_test_misr = preprocess_and_save(path_to_dataset, "test", max_s2_images)
 
     # Join DataFrames
     df_train = df_train_sisr.join(
@@ -102,8 +103,8 @@ def preprocess_dataset(path_to_dataset, max_s2_images=1):
     )
 
     # Save DataFrames on disk in `preprocessed` subfolder
-    df_train.to_pickle(os.path.join(path, "preprocessed", "dataset_train.pkl"))
-    df_test.to_pickle(os.path.join(path, "preprocessed", "dataset_test.pkl"))
+    df_train.to_pickle(os.path.join(path_to_dataset, "preprocessed", "dataset_train.pkl"))
+    df_test.to_pickle(os.path.join(path_to_dataset, "preprocessed", "dataset_test.pkl"))
 
 
 if __name__ == "__main__":
