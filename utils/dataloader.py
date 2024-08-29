@@ -44,7 +44,10 @@ class BreizhSRDataset(Dataset):
             self.dataset = pd.read_pickle(os.path.join(preprocessed_path, "dataset_test.pkl"))
 
         # Keep only the rows from the request split
-        self.dataset = self.dataset[self.dataset["split"] == self.split]
+        if not self.split=="test":
+            self.dataset = self.dataset[self.dataset["type_split"] == self.split]
+        else:
+            self.dataset = self.dataset[self.dataset["split"] == self.split]
         
         self.dataset['indexes'] = self.dataset.index
 
@@ -102,9 +105,10 @@ class BreizhSRDataset(Dataset):
                         'item_name': str(idx),
                     }
         else:
-            lr = lr[dataset_row["nb_images"], :]
+            lr = lr[np.sort(dataset_row["nb_images"]), :]
             # Extract positional encodings for dates
-            dates_encoding = [dates_encoding[x] for x in dataset_row["nb_images"]]
+            dates_encoding = [dates_encoding[x] for x in np.sort(dataset_row["nb_images"])]
+            alphas = [alphas[x] for x in np.sort(dataset_row["nb_images"])]
             # Normalize tensors
             hr = self.to_tensor_norm(hr, "spot6")
             img_lr_up = self.to_tensor_norm(img_lr_up, "sen2")
