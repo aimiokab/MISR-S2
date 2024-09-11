@@ -14,10 +14,10 @@ hidden_size: 64
 batch_size: 64
 max_updates: 400000
 eval_batch_size: 64
-test_batch_size: 1
+test_batch_size: 64
 train_diffsr: true
-val_check_interval: 380000
-save_ckpt_interval : 20000
+val_check_interval: 75000
+save_ckpt_interval : 40000
 use_rrdb: false
 rrdb_num_feat: 1
 sen2_amount: 1
@@ -27,3 +27,5 @@ use_highresnet: false
 use_rrdb: false
 use_rrdb_ltae: false
 loss_type: l1
+save_intermediate: False
+test_save_png: False

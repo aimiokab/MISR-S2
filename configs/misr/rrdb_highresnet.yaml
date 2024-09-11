@@ -19,6 +19,6 @@ sen2_amount: 8
 train_diffsr: false
 # add these lines for testing:
 save_intermediate: False
-test_save_png: True
+test_save_png: False
 misr: True
 test_diff: False

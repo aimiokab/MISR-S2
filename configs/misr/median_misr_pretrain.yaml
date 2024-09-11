@@ -12,8 +12,12 @@ max_updates: 400000
 batch_size: 32
 eval_batch_size: 32
 test_batch_size: 1
-val_check_interval: 30000
-save_ckpt_interval : 20000
+val_check_interval: 50000
+save_ckpt_interval : 40000
 train_diffsr: false
 sen2_amount: 8
 misr_ref_image: median # closest or median -> reference image (for more details please refer to HighRes-net paper)
+save_intermediate: False
+test_save_png: False
+misr: True
+test_diff: False

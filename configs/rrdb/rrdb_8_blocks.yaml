@@ -13,12 +13,12 @@ batch_size: 32
 eval_batch_size: 32
 valid_steps: 3
 train_diffsr: false
-save_ckpt_interval: 20000
-val_check_interval: 25000
+save_ckpt_interval: 40000
+val_check_interval: 50000
 sen2_amount: 1
 train_diffsr: false
 loss_type: l1
 save_intermediate: False
-test_save_png: True
+test_save_png: False
 misr: False
 test_diff: False
